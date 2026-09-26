@@ -1,0 +1,620 @@
+
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNTAX & SOUL // Indie Game Localization Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['"Oldtimer"', '"DungGeunMo"', '"JetBrains Mono"', 'monospace'],
+                        pixel: ['"Oldtimer"', '"DungGeunMo"', '"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        crt: {
+                            bg: '#0a0b0e',
+                            surface: '#12141c',
+                            border: '#1f2433',
+                            green: '#00ff66',
+                            cyan: '#00e5ff',
+                            magenta: '#ff0055',
+                            purple: '#b026ff',
+                            pink: '#ff2bd6',
+                            yellow: '#f9f002',
+                            dim: '#4a5568'
+                        }
+                    },
+                    boxShadow: {
+                        'crt': 'inset 0 0 120px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 0, 213, 0.08), 0 0 40px rgba(0, 229, 255, 0.06)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @font-face {
+            font-family: 'Oldtimer';
+            src: url('fonts/Oldtimer-Regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'DungGeunMo';
+            src: url('fonts/DungGeunMo-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            background-color: #0a0b0e;
+            background-image:
+                radial-gradient(circle at 15% 20%, rgba(255, 43, 214, 0.06), transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(0, 229, 255, 0.06), transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(176, 38, 255, 0.04), transparent 60%);
+            color: #cbd5e1;
+            font-family: 'Oldtimer', 'DungGeunMo', 'JetBrains Mono', monospace;
+            overflow-x: hidden;
+        }
+
+        /* CRT Scanline Effect */
+        .crt-overlay::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 213, 0.06), rgba(0, 255, 102, 0.02), rgba(0, 229, 255, 0.06));
+            z-index: 999;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* Sweeping scanline bar, classic CRT refresh sweep */
+        .crt-overlay::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 100px;
+            background: linear-gradient(rgba(0, 229, 255, 0) 0%, rgba(0, 229, 255, 0.05) 50%, rgba(0, 229, 255, 0) 100%);
+            z-index: 998;
+            pointer-events: none;
+            animation: scan-sweep 7s linear infinite;
+        }
+        @keyframes scan-sweep {
+            0% { transform: translateY(-120px); }
+            100% { transform: translateY(100vh); }
+        }
+
+        /* Screen flicker, subtle brightness stutter */
+        @keyframes flicker {
+            0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; filter: brightness(1); }
+            20% { opacity: 0.92; filter: brightness(1.08); }
+            22% { opacity: 0.97; filter: brightness(0.94); }
+            24% { opacity: 0.94; filter: brightness(1.05); }
+            55% { opacity: 0.96; filter: brightness(1.1); }
+        }
+        .crt-overlay {
+            animation: flicker 6s infinite;
+        }
+
+        /* Vignette */
+        .crt-vignette {
+            position: fixed;
+            inset: 0;
+            z-index: 997;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.65) 100%);
+        }
+
+        /* TV static noise, always on very faint, for texture */
+        .crt-static {
+            position: fixed;
+            inset: 0;
+            z-index: 996;
+            pointer-events: none;
+            opacity: 0.05;
+            mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+            animation: static-shift 0.2s steps(3) infinite;
+        }
+        @keyframes static-shift {
+            0% { transform: translate(0, 0); }
+            33% { transform: translate(-2%, 1%); }
+            66% { transform: translate(1%, -2%); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* Glitch Animation (hover) */
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-3px, 2px) }
+            40% { transform: translate(-3px, -2px) }
+            60% { transform: translate(3px, 2px) }
+            80% { transform: translate(3px, -2px) }
+            100% { transform: translate(0) }
+        }
+        .glitch-hover:hover {
+            animation: glitch 0.2s cubic-bezier(.25, .46, .45, .94) both;
+            text-shadow: -2px 0 #ff2bd6, 2px 0 #00e5ff;
+        }
+
+        /* RGB-split glitch text, continuous subtle distortion for headings */
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            overflow: hidden;
+            background: transparent;
+        }
+        .glitch-text::before {
+            text-shadow: -2px 0 #ff0055;
+            clip-path: inset(30% 0 45% 0);
+            animation: glitch-anim-1 3.2s infinite linear alternate-reverse;
+        }
+        .glitch-text::after {
+            text-shadow: 2px 0 #00e5ff, -2px 0 #b026ff;
+            clip-path: inset(60% 0 10% 0);
+            animation: glitch-anim-2 2.6s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 60% 0); transform: translate(0); }
+            20% { clip-path: inset(60% 0 5% 0); transform: translate(-1px, 0); }
+            40% { clip-path: inset(40% 0 40% 0); transform: translate(1px, 0); }
+            60% { clip-path: inset(10% 0 70% 0); transform: translate(-1px, 0); }
+            80% { clip-path: inset(80% 0 2% 0); transform: translate(1px, 0); }
+            100% { clip-path: inset(30% 0 50% 0); transform: translate(0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(10% 0 80% 0); transform: translate(0); }
+            20% { clip-path: inset(70% 0 10% 0); transform: translate(1px, 0); }
+            40% { clip-path: inset(30% 0 55% 0); transform: translate(-1px, 0); }
+            60% { clip-path: inset(55% 0 20% 0); transform: translate(1px, 0); }
+            80% { clip-path: inset(5% 0 85% 0); transform: translate(-1px, 0); }
+            100% { clip-path: inset(45% 0 35% 0); transform: translate(0); }
+        }
+
+        /* Occasional harder glitch burst, triggered via JS on random elements */
+        @keyframes rgb-burst {
+            0% { transform: translate(0); text-shadow: none; }
+            20% { transform: translate(-4px, 2px) skewX(2deg); text-shadow: 4px 0 #ff0055, -4px 0 #00e5ff; }
+            40% { transform: translate(4px, -2px) skewX(-2deg); text-shadow: -4px 0 #00ff66, 4px 0 #ff2bd6; }
+            60% { transform: translate(-3px, 1px); text-shadow: 3px 0 #f9f002, -3px 0 #b026ff; }
+            80% { transform: translate(3px, -1px); text-shadow: -4px 0 #00e5ff, 4px 0 #ff0055; }
+            100% { transform: translate(0); text-shadow: none; }
+        }
+        .glitch-burst {
+            animation: rgb-burst 0.28s steps(2, end);
+        }
+
+        /* Neon glitch hover: hard RGB-split offsets + jitter, no blur */
+        @keyframes box-glitch {
+            0%   { transform: translate(0); clip-path: inset(0 0 0 0); }
+            15%  { transform: translate(-3px, 1px) skewX(-3deg); clip-path: inset(12% 0 58% 0); }
+            30%  { transform: translate(3px, -1px) skewX(2deg); clip-path: inset(62% 0 8% 0); }
+            45%  { transform: translate(-2px, 0); clip-path: inset(0 0 0 0); }
+            60%  { transform: translate(2px, 1px); clip-path: inset(38% 0 36% 0); }
+            75%  { transform: translate(-1px, -1px); clip-path: inset(0 0 0 0); }
+            100% { transform: translate(0); clip-path: inset(0 0 0 0); }
+        }
+        @keyframes box-glitch-shift {
+            0%, 100% { box-shadow: -3px 0 0 rgba(255, 43, 214, 0.75), 3px 0 0 rgba(0, 229, 255, 0.75); }
+            33%      { box-shadow: 3px 1px 0 rgba(0, 255, 102, 0.7), -3px -1px 0 rgba(255, 0, 85, 0.7); }
+            66%      { box-shadow: -2px -1px 0 rgba(249, 240, 2, 0.7), 2px 1px 0 rgba(176, 38, 255, 0.75); }
+        }
+        .glitch-box:hover,
+        .sample-card:hover {
+            animation: box-glitch 0.32s steps(2, end) 1, box-glitch-shift 0.9s steps(1, end) infinite;
+            text-shadow: -1px 0 rgba(255, 43, 214, 0.8), 1px 0 rgba(0, 229, 255, 0.8);
+        }
+        .glitch-box:active {
+            animation: box-glitch 0.18s steps(2, end) infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .glitch-box:hover, .sample-card:hover, .glitch-box:active {
+                animation: none;
+                box-shadow: -2px 0 0 rgba(255, 43, 214, 0.75), 2px 0 0 rgba(0, 229, 255, 0.75);
+            }
+        }
+
+        /* Neon pulse for borders and CTAs */
+        @keyframes neon-pulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(0, 229, 255, 0.25), inset 0 0 20px rgba(255, 43, 214, 0.03); }
+            50% { box-shadow: 0 0 20px rgba(255, 43, 214, 0.35), inset 0 0 30px rgba(0, 229, 255, 0.06); }
+        }
+        .neon-pulse {
+            animation: neon-pulse 3.5s ease-in-out infinite;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0b0e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(#ff2bd6, #00e5ff);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(#f9f002, #00ff66);
+        }
+    </style>
+</head>
+<body class="crt-overlay min-h-screen flex flex-col justify-between selection:bg-crt-pink selection:text-black">
+    <div class="crt-static"></div>
+    <div class="crt-vignette"></div>
+
+    <header class="border-b border-crt-border bg-crt-surface/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <span class="inline-block w-3 h-3 bg-crt-pink animate-ping rounded-full"></span>
+            <span class="glitch-text font-pixel text-2xl tracking-wider text-crt-green" data-text="SYS.LOC // 111-SIGNAL">SYS.LOC // 111-SIGNAL</span>
+        </div>
+        <nav class="hidden md:flex space-x-6 text-xs text-crt-dim font-mono">
+            <a href="#about" class="hover:text-crt-green transition-colors">[01] PROFILE</a>
+            <a href="#specialties" class="hover:text-crt-cyan transition-colors">[02] GENRES</a>
+            <a href="#samples" class="hover:text-crt-magenta transition-colors">[03] TRANSLATION_ARCHIVE</a>
+            <a href="#contact" class="hover:text-crt-purple transition-colors">[04] TRANSMIT</a>
+        </nav>
+        <div class="text-xs text-crt-yellow border border-crt-yellow/30 px-3 py-1 rounded bg-crt-yellow/5">
+            STATUS: READY_FOR_HIRE
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl mx-auto px-6 py-12 w-full space-y-20">
+        
+        <section class="relative border border-crt-border bg-crt-surface p-8 md:p-12 rounded-lg shadow-crt neon-pulse overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 opacity-5 font-pixel text-9xl pointer-events-none select-none text-crt-pink">
+                111
+            </div>
+            <div class="space-y-6 max-w-3xl relative z-10">
+                <div class="inline-flex items-center space-x-2 text-xs text-crt-green bg-crt-green/10 border border-crt-green/20 px-3 py-1 rounded">
+                    <span>ANGELIC PROTOCOL: 111 (SIGNAL ACTIVE)</span>
+                </div>
+                <h1 class="text-3xl md:text-5xl font-bold tracking-tight text-white glitch-hover">
+                    Translating the <span class="text-crt-pink">Soul</span> & <span class="text-crt-cyan">Glitch</span> of Indie Games.
+                </h1>
+                <p class="text-sm md:text-base text-slate-400 leading-relaxed">
+                    메타픽션의 제4의 벽 파괴부터 아날로그 호러의 오컬틱한 침묵, 심리 스릴러의 미세한 파열음까지. 개발자의 의도와 원작의 숨결을 그대로 이식하는 프리미엄 게임 로컬라이제이션 아카이브입니다.
+                </p>
+                <div class="flex flex-wrap gap-4 pt-4">
+                    <a href="#samples" class="px-6 py-3 bg-crt-pink text-black font-bold text-sm rounded glitch-box transition-all flex items-center space-x-2">
+                        <span>EXPLORE ARCHIVE</span>
+                        <span>↓</span>
+                    </a>
+                    <a href="#contact" class="px-6 py-3 border border-crt-border hover:border-crt-cyan glitch-box text-slate-300 text-sm rounded transition-all">
+                        INITIATE CONTACT
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="border border-crt-border bg-crt-surface p-6 rounded-lg space-y-4 hover:border-crt-cyan/50 glitch-box transition-all">
+                <div class="text-xs text-crt-cyan">[01 // EXPERTISE]</div>
+                <h3 class="text-lg font-bold text-white">Deep Contextual Adaptation</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    단순한 단어 치환을 넘어, 게임이 가진 장르적 문법(메타픽션, 레트로 호러, 구어체 심리)을 완벽히 이해하고 한국어 플레이어에게 동등한 몰입감을 선사합니다.
+                </p>
+            </div>
+            <div class="border border-crt-border bg-crt-surface p-6 rounded-lg space-y-4 hover:border-crt-pink/50 glitch-box transition-all">
+                <div class="text-xs text-crt-pink">[02 // PRECISION]</div>
+                <h3 class="text-lg font-bold text-white">UI & Constraint Handling</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    제한된 글자 수(Character Limit)와 툴팁 레이아웃 안에서도 정보 전달력을 잃지 않는 직관적인 번역과 명확한 용어 통일을 준수합니다.
+                </p>
+            </div>
+            <div class="border border-crt-border bg-crt-surface p-6 rounded-lg space-y-4 hover:border-crt-purple/50 glitch-box transition-all">
+                <div class="text-xs text-crt-purple">[03 // TONALITY]</div>
+                <h3 class="text-lg font-bold text-white">Atmospheric Resonance</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    불안감, 블랙 코미디, 기괴함, 애절함 등 장르 고유의 톤앤매너를 대사와 지문 속에 세밀하게 직조해냅니다.
+                </p>
+            </div>
+        </section>
+
+        <section id="specialties" class="space-y-6">
+            <div class="border-l-2 border-crt-cyan pl-4">
+                <h2 class="glitch-text text-xl font-bold text-white tracking-wider" data-text="GENRE SPECIALTIES">GENRE SPECIALTIES</h2>
+                <p class="text-xs text-slate-400">지원 가능한 주요 게임 장르 및 내러티브 스타일</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="border border-crt-border bg-crt-surface p-5 rounded hover:border-crt-cyan/50 glitch-box transition-all">
+                    <div class="text-crt-cyan font-pixel text-xl mb-2">01 // INTERACTIVE</div>
+                    <h4 class="font-bold text-sm text-white mb-1">Interactive Fiction & FMV</h4>
+                    <p class="text-xs text-slate-400">구어체의 결, 웅얼거림, 심리적 긴장감을 살린 생생한 독백 번역.</p>
+                </div>
+                <div class="border border-crt-border bg-crt-surface p-5 rounded hover:border-crt-green/50 glitch-box transition-all">
+                    <div class="text-crt-green font-pixel text-xl mb-2">02 // METAFICTION</div>
+                    <h4 class="font-bold text-sm text-white mb-1">Metafiction & Humor</h4>
+                    <p class="text-xs text-slate-400">제4의 벽을 깨는 대사, 블랙 코미디, 시치미 떼는 유머(Deadpan) 구현.</p>
+                </div>
+                <div class="border border-crt-border bg-crt-surface p-5 rounded hover:border-crt-magenta/50 glitch-box transition-all">
+                    <div class="text-crt-magenta font-pixel text-xl mb-2">03 // HORROR</div>
+                    <h4 class="font-bold text-sm text-white mb-1">Analog Horror & Occult</h4>
+                    <p class="text-xs text-slate-400">종교적 텍스트, 기괴한 시스템 메시지, 건조하고 불길한 오컬트 분위기.</p>
+                </div>
+                <div class="border border-crt-border bg-crt-surface p-5 rounded hover:border-crt-yellow/50 glitch-box transition-all">
+                    <div class="text-crt-yellow font-pixel text-xl mb-2">04 // SURREALISM</div>
+                    <h4 class="font-bold text-sm text-white mb-1">Psychological Suspense</h4>
+                    <p class="text-xs text-slate-400">불쾌한 골짜기와 초현실적 서사 속에서 파편화된 복선과 뉘앙스 포착.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="samples" class="space-y-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between border-l-2 border-crt-magenta pl-4 gap-2">
+                <div>
+                    <h2 class="glitch-text text-xl font-bold text-white tracking-wider" data-text="TRANSLATION SAMPLES // ARCHIVE">TRANSLATION SAMPLES // ARCHIVE</h2>
+                    <p class="text-xs text-slate-400">원문(English)과 번역문(Korean), 그리고 번역 의도(Rationale) 대조 카드</p>
+                </div>
+                <div class="text-xs text-crt-magenta font-mono">
+                    TOTAL_SAMPLES: 6 GAMES
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="flex flex-wrap gap-2 text-xs">
+                <button onclick="filterSamples('all')" class="filter-btn px-4 py-2 bg-crt-surface border border-crt-border rounded text-white hover:border-crt-green glitch-box transition-all active">ALL SAMPLES</button>
+                <button onclick="filterSamples('interactive')" class="filter-btn px-4 py-2 bg-crt-surface border border-crt-border rounded text-slate-400 hover:border-crt-cyan glitch-box transition-all">INTERACTIVE / SUSPENSE</button>
+                <button onclick="filterSamples('meta')" class="filter-btn px-4 py-2 bg-crt-surface border border-crt-border rounded text-slate-400 hover:border-crt-green glitch-box transition-all">METAFICTION</button>
+                <button onclick="filterSamples('horror')" class="filter-btn px-4 py-2 bg-crt-surface border border-crt-border rounded text-slate-400 hover:border-crt-magenta glitch-box transition-all">HORROR / OCULT</button>
+            </div>
+
+            <!-- Sample Cards Container -->
+            <div class="space-y-6">
+
+                <!-- Sample 1: Her Story -->
+                <div class="sample-card border border-crt-border bg-crt-surface rounded-lg p-6 space-y-4" data-category="interactive">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-crt-border pb-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs bg-cyan-950 text-crt-cyan border border-cyan-800 px-2 py-0.5 rounded">FMV / INTERACTIVE</span>
+                            <h3 class="font-bold text-white text-sm md:text-base">《허 스토리 (Her Story)》</h3>
+                        </div>
+                        <span class="text-xs text-slate-500">Focus: Spoken Dialogue & Psychological Nuance</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Original -->
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-dim tracking-wider">[ORIGINAL // ENG]</div>
+                            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+                                "Um… Simon is six foot. Darkish blonde hair. Average build. He's clean shaven. If his beard grows, it goes ginger, so he shaves it… I mean not that there's anything wrong with ginger hair!"
+                            </p>
+                        </div>
+                        <!-- Translation -->
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-green tracking-wider">[TRANSLATION // KOR]</div>
+                            <p class="text-xs text-slate-200 font-mono leading-relaxed">
+                                "어… 사이먼은 키가 6피트예요. 머리는 어두운 금발이고요. 체격은 평범해요. 면도를 깔끔하게 하는 편이에요. 수염이 자라면 붉은빛이 돌아서 늘 밀거든요… 아, 그렇다고 붉은머리를 탓하는 건 아니에요!"
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Rationale -->
+                    <div class="bg-crt-cyan/5 border border-crt-cyan/20 p-3 rounded text-xs text-slate-300 flex items-start space-x-2">
+                        <span class="text-crt-cyan font-bold mt-0.5">💡 Rationale:</span>
+                        <span>말줄임과 웅얼거림(Um...), 그리고 급하게 말을 수습하는 구어체 특유의 머뭇거리는 리듬을 살려 조사실이라는 폐쇄된 공간의 심리적 긴장감과 자연스러움을 동시에 조율했습니다.</span>
+                    </div>
+                </div>
+
+                <!-- Sample 2: Pony Island -->
+                <div class="sample-card border border-crt-border bg-crt-surface rounded-lg p-6 space-y-4" data-category="meta">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-crt-border pb-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs bg-emerald-950 text-crt-green border border-emerald-800 px-2 py-0.5 rounded">METAFICTION</span>
+                            <h3 class="font-bold text-white text-sm md:text-base">《포니 아일랜드 (Pony Island)》</h3>
+                        </div>
+                        <span class="text-xs text-slate-500">Focus: Deadpan Humor & Fourth Wall Breaking</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-dim tracking-wider">[ORIGINAL // ENG]</div>
+                            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+                                "Your soul is safely secured within this arcade cabinet. Please do not attempt to disable the core mechanics. It would make the devil very unhappy."
+                            </p>
+                        </div>
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-green tracking-wider">[TRANSLATION // KOR]</div>
+                            <p class="text-xs text-slate-200 font-mono leading-relaxed">
+                                "당신의 영혼은 이 오락기 안에 안전하게 보관되었습니다. 핵심 메커니즘을 해제하려 들지 마세요. 악마가 아주 불쾌해할 테니까요."
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-crt-green/5 border border-crt-green/20 p-3 rounded text-xs text-slate-300 flex items-start space-x-2">
+                        <span class="text-crt-green font-bold mt-0.5">💡 Rationale:</span>
+                        <span>귀여운 겉모습 뒤에 숨겨진 악랄한 악마의 시스템적 협박을 '시치미 떼는 어조(Deadpan)'로 건조하게 전달하여 메이커 고유의 블랙 코미디 감성을 극대화했습니다.</span>
+                    </div>
+                </div>
+
+                <!-- Sample 3: FAITH -->
+                <div class="sample-card border border-crt-border bg-crt-surface rounded-lg p-6 space-y-4" data-category="horror">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-crt-border pb-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs bg-rose-950 text-crt-magenta border border-rose-800 px-2 py-0.5 rounded">ANALOG HORROR</span>
+                            <h3 class="font-bold text-white text-sm md:text-base">《페이스: 언홀리 트리니티 (FAITH)》</h3>
+                        </div>
+                        <span class="text-xs text-slate-500">Focus: Occult & Minimalist Dread</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-dim tracking-wider">[ORIGINAL // ENG]</div>
+                            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+                                "MORTIS. Do not be afraid. The unholy trinity feeds on doubt. Keep your crucifix raised."
+                            </p>
+                        </div>
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-green tracking-wider">[TRANSLATION // KOR]</div>
+                            <p class="text-xs text-slate-200 font-mono leading-relaxed">
+                                "죽음(MORTIS). 두려워하지 마라. 부정한 삼위일체는 의심을 먹고 자란다. 십자가를 높이 들어라."
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-crt-magenta/5 border border-crt-magenta/20 p-3 rounded text-xs text-slate-300 flex items-start space-x-2">
+                        <span class="text-crt-magenta font-bold mt-0.5">💡 Rationale:</span>
+                        <span>레트로 아날로그 호러 특유의 종교적 엄숙함과 단편적인 명령어의 압박감을 살리기 위해, 고어(Gothic)풍의 건조하고 묵직한 어휘를 선택했습니다.</span>
+                    </div>
+                </div>
+
+                <!-- Sample 4: Who's Lila? -->
+                <div class="sample-card border border-crt-border bg-crt-surface rounded-lg p-6 space-y-4" data-category="interactive">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-crt-border pb-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded">PSYCHOLOGICAL THRILLER</span>
+                            <h3 class="font-bold text-white text-sm md:text-base">《후즈 라일라? (Who's Lila?)》</h3>
+                        </div>
+                        <span class="text-xs text-slate-500">Focus: Uncanny Valley & Expression Control</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-dim tracking-wider">[ORIGINAL // ENG]</div>
+                            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+                                "Adjust the facial expression manually. If it doesn't match the social context, the void will widen."
+                            </p>
+                        </div>
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-green tracking-wider">[TRANSLATION // KOR]</div>
+                            <p class="text-xs text-slate-200 font-mono leading-relaxed">
+                                "안면 표정을 수동으로 조절하십시오. 사회적 맥락과 일치하지 않으면, 공허가 더 넓어질 것입니다."
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-500/5 border border-amber-500/20 p-3 rounded text-xs text-slate-300 flex items-start space-x-2">
+                        <span class="text-amber-400 font-bold mt-0.5">💡 Rationale:</span>
+                        <span>불쾌한 골짜기를 자극하는 기계적이면서도 서늘한 인스트럭션 톤을 유지하여 플레이어에게 심리적 이질감을 온전하게 전달하도록 번역했습니다.</span>
+                    </div>
+                </div>
+
+                <!-- Sample 5: Paratopic -->
+                <div class="sample-card border border-crt-border bg-crt-surface rounded-lg p-6 space-y-4" data-category="horror">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-crt-border pb-3">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs bg-purple-950 text-purple-400 border border-purple-800 px-2 py-0.5 rounded">CINEMATIC NOIR</span>
+                            <h3 class="font-bold text-white text-sm md:text-base">《파라토픽 (Paratopic)》</h3>
+                        </div>
+                        <span class="text-xs text-slate-500">Focus: Fragmented Narrative & Noir Suspense</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-dim tracking-wider">[ORIGINAL // ENG]</div>
+                            <p class="text-xs text-slate-300 font-mono leading-relaxed">
+                                "The tapes aren't contraband if no one's watching the checkpoints. Just keep driving through the fog."
+                            </p>
+                        </div>
+                        <div class="bg-black/40 border border-crt-border/60 p-4 rounded space-y-2">
+                            <div class="text-[10px] text-crt-green tracking-wider">[TRANSLATION // KOR]</div>
+                            <p class="text-xs text-slate-200 font-mono leading-relaxed">
+                                "검문소를 지켜보는 사람이 없다면 테이프도 밀수가 아니야. 그냥 안개를 뚫고 계속 운전해."
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-purple-500/5 border border-purple-500/20 p-3 rounded text-xs text-slate-300 flex items-start space-x-2">
+                        <span class="text-purple-400 font-bold mt-0.5">💡 Rationale:</span>
+                        <span>파편화되고 불친절한 누아르 서사 속에서 냉소적이면서도 체념한 듯한 주인공의 말투를 살려 영화 같은 현장감을 부여했습니다.</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="contact" class="border border-crt-border bg-crt-surface p-8 md:p-12 rounded-lg relative overflow-hidden space-y-6 neon-pulse">
+            <div class="absolute -right-10 -bottom-10 opacity-5 font-pixel text-9xl pointer-events-none select-none text-crt-purple">
+                999
+            </div>
+            <div class="max-w-2xl space-y-4 relative z-10">
+                <div class="inline-flex items-center space-x-2 text-xs text-crt-purple bg-crt-purple/10 border border-crt-purple/20 px-3 py-1 rounded">
+                    <span>EXIT PROTOCOL: 999 (OPEN CHANNEL)</span>
+                </div>
+                <h2 class="glitch-text text-2xl md:text-3xl font-bold text-white" data-text="Ready to Translate Your World?">Ready to Translate Your World?</h2>
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    인디게임의 독창적인 세계관과 내러티브를 완벽한 한국어로 이식할 파트너를 찾고 계신가요? 프로젝트 샘플 테스트나 견적 문의는 언제든 열려 있습니다.
+                </p>
+                <div class="pt-4 flex flex-wrap gap-4">
+                    <a href="mailto:contact@syntaxsoul.local" class="px-6 py-3 bg-crt-cyan text-black font-bold text-sm rounded glitch-box transition-all">
+                        SEND TRANSMISSION (EMAIL)
+                    </a>
+                    <a href="https://twitter.com" target="_blank" class="px-6 py-3 border border-crt-border hover:border-crt-pink glitch-box text-slate-300 text-sm rounded transition-all">
+                        TWITTER / X
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-crt-border bg-crt-surface/80 mt-20 py-8 px-6 text-center text-xs text-crt-dim space-y-2">
+        <p>SYNTAX & SOUL // INDIE GAME LOCALIZATION PORTFOLIO</p>
+        <p class="text-[10px]">ALL GAME REFERENCES BELONG TO THEIR RESPECTIVE DEVELOPERS.</p>
+    </footer>
+
+    <script>
+        function filterSamples(category) {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('border-crt-green', 'border-crt-cyan', 'border-crt-magenta', 'text-white');
+                btn.classList.add('text-slate-400');
+            });
+
+            event.target.classList.remove('text-slate-400');
+            event.target.classList.add('text-white');
+            if(category === 'all') event.target.classList.add('border-crt-green');
+            else if(category === 'interactive') event.target.classList.add('border-crt-cyan');
+            else if(category === 'meta') event.target.classList.add('border-crt-green');
+            else if(category === 'horror') event.target.classList.add('border-crt-magenta');
+
+            const cards = document.querySelectorAll('.sample-card');
+            cards.forEach(card => {
+                if(category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Randomized CRT glitch bursts across headings and cards for a chaotic, unstable-signal feel
+        (function() {
+            const glitchTargets = [
+                ...document.querySelectorAll('.glitch-text'),
+                ...document.querySelectorAll('h1'),
+                ...document.querySelectorAll('.sample-card'),
+            ];
+
+            function fireGlitch() {
+                const el = glitchTargets[Math.floor(Math.random() * glitchTargets.length)];
+                if (el) {
+                    el.classList.add('glitch-burst');
+                    setTimeout(() => el.classList.remove('glitch-burst'), 280);
+                }
+                const nextDelay = 2500 + Math.random() * 4500;
+                setTimeout(fireGlitch, nextDelay);
+            }
+
+            setTimeout(fireGlitch, 1800);
+        })();
+    </script>
+<script async src="/.netlify/scripts/ar" data-netlify-deploy-id="6ab7f5298da36b8c0ee2a084" data-netlify-site-id="870153c1-2619-4c69-9685-93d173007f2b" data-agent-runner-id="6ab66d7a4e96b527f4a8d31b"></script>
+</body>
+</html><script async src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="870153c1-2619-4c69-9685-93d173007f2b" data-app-host="app.netlify.com"></script>
